@@ -1,0 +1,67 @@
+<launch>
+  <arg name="multi_robot_name" default=""/>
+  <param name="ekf_option" type="bool" value="true" /> <!--false-->
+  <arg   name="ekf_option_flag" default="1"/>
+
+<group if="$(eval arg('ekf_option_flag')==1)">
+<!-- ekf_localization -->
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" clear_params="true"> 
+    <rosparam command="load" file="$(find morobot_navigation)/param/ekf_localization.yaml" />
+  </node>
+</group>
+
+<!-- IMU -->
+  <node pkg="iahrs_driver" type="iahrs_driver" name="iahrs_driver" output="screen" />
+    <param name="m_bSingle_TF_option" type="bool" value="false" /> <!--true-->
+
+<!--md bringup-->
+    <node pkg="md" type="md_node" name="md_node" output="screen">
+        <param name = "diameter"         value = "170"/>
+        <param name = "wheelLength"      value = "514"/>
+        <param name = "reduction"        value = "1"/>
+        <param name = "baudrate"         value = "19200"/>
+        <param name = "direction"        value = "1"/>
+        <param name = "PC"               value = "172"/>
+        <param name = "MDUI"             value = "184"/>
+        <param name = "MDT"              value = "183"/>
+        <param name = "RMID"             value = "183"/>
+        <param name = "halltype"         value = "30"/>
+        <param name = "maxrpm"           value = "300"/>
+        <param name = "angleresolution"  value = "0"/>
+        <param name = "slowstart"        value = "300"/>
+        <param name = "slowdown"         value = "300"/>
+    </node>
+
+    <node pkg="md" type="vel_cmd_node" name="vel_cmd_node" output="screen">
+        <param name = "reset_odometry"  value = "0"/>
+        <param name = "reset_angle"     value = "0"/>
+        <param name = "reset_alarm"     value = "0"/>
+    </node>
+
+ <!-- 2D LiDAR  SICK TIM571-->
+  <node name="ydlidar_node"  pkg="ydlidar"  type="ydlidar_node" output="screen" respawn="false" >
+    <param name="port"         type="string" value="/dev/ttyUSB1"/>  
+    <param name="baudrate"     type="int"    value="115200"/>
+    <param name="frame_id"     type="string" value="base_scan"/>
+    <param name="low_exposure"  type="bool"   value="false"/>
+    <param name="resolution_fixed"    type="bool"   value="true"/>
+    <param name="auto_reconnect"    type="bool"   value="true"/>
+    <param name="reversion"    type="bool"   value="true"/>
+    <param name="angle_min"    type="double" value="-180" />
+    <param name="angle_max"    type="double" value="180" />
+    <param name="range_min"    type="double" value="0.10" />
+    <param name="range_max"    type="double" value="16.0" />
+    <param name="ignore_array" type="string" value="" />
+    <param name="samp_rate"    type="int"    value="9"/>
+    <param name="frequency"    type="double" value="7"/>
+  </node>
+
+
+ <!-- Arduino LED -->
+  <node name="serial_node" pkg="rosserial_python" type="serial_node.py">
+    <param name="port" value="/dev/ttyACM0"/>
+    <param name="baud" value="57600"/>
+  </node>
+
+
+</launch>
